@@ -280,7 +280,7 @@ footer{background:var(--dark);color:#fff;padding:55px 28px 22px}
 
     <div class="stag">💬 Témoignages</div>
     <h2 class="stit" style="margin-bottom:32px">Ce qu'ils disent de <span>Dr. Menca</span></h2>
-    <div class="ga">
+    <div class="ga" id="reviewsGrid">
     <div class="card" style="padding:24px">
       <div style="color:#f59e0b;font-size:.95rem;margin-bottom:11px">★★★★★</div>
       <div style="font-size:.88rem;color:var(--dark);line-height:1.65;font-style:italic">"Dr. Menca est une perle rare ! J'avais tellement peur du dentiste et elle m'a mise à l'aise. Résultat impeccable, je suis ravie !"</div>
@@ -377,7 +377,7 @@ footer{background:var(--dark);color:#fff;padding:55px 28px 22px}
       <h3 style="font-size:1.3rem;font-weight:900;color:var(--dark);margin-bottom:9px">Vous êtes patient(e) de Dr. Menca ?</h3>
       <p style="font-size:.9rem;color:var(--gray);margin-bottom:22px">Votre avis aide d'autres patients à nous faire confiance. Partagez votre expérience !</p>
       <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
-        <a href="https://wa.me/237698726922?text=Bonjour%20Dr.%20Menca,%20voici%20mon%20avis%20:" target="_blank" class="bp">💬 Laisser un avis WhatsApp</a>
+        <button type="button" class="bp" onclick="openReviewModal()">⭐ Laisser un avis</button>
         <a href="rdv.html" class="bo">📅 Prendre rendez-vous</a>
       </div>
     </div>
@@ -427,7 +427,7 @@ footer{background:var(--dark);color:#fff;padding:55px 28px 22px}
       <div class="fct">Contact</div>
       <div class="fci"><span>📍</span><span>Yaoundé, Cameroun</span></div>
       <div class="fci"><span>📞</span><span>+237 698 726 922</span></div>
-      <div class="fci"><span>🕐</span><span>Lun–Sam 8h–18h</span></div>
+      <div class="fci"><span>🕐</span><span>24h/24 · 7j/7</span></div>
       <button class="bp" onclick="openModal()" style="margin-top:12px;font-size:.82rem;padding:9px 16px">📅 Prendre RDV</button>
     </div>
   </div>
@@ -437,6 +437,35 @@ footer{background:var(--dark);color:#fff;padding:55px 28px 22px}
   </div>
 </div></footer>
 
+<div class="mo" id="rvmo" onclick="closeReviewOut(event)">
+  <div class="md">
+    <div class="mh"><div class="mt">⭐ Laisser un avis</div>
+      <button class="mc" onclick="closeReviewModal()">✕</button></div>
+    <div class="fg"><label>Votre prénom et nom *</label><input type="text" id="rvn" placeholder="Ex. Marie D." maxlength="60" /></div>
+    <div class="fg"><label>Service concerné *</label>
+      <select id="rvs">
+        <option value="">-- Sélectionnez le service --</option>
+        <option>Alignement Dentaire</option>
+        <option>Détartrage</option>
+        <option>Blanchiment</option>
+        <option>Implants</option>
+        <option>Couronnes</option>
+        <option>Pédiatrique</option>
+        <option>Consultation</option>
+        <option>Orthodontie</option>
+        <option>Urgence</option>
+      </select>
+    </div>
+    <div class="fg"><label>Votre note *</label>
+      <div id="rvStars" style="font-size:2rem;color:#e5e7eb;cursor:pointer;user-select:none;letter-spacing:4px;line-height:1">
+        <span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span>
+      </div>
+      <input type="hidden" id="rvRate" value="5">
+    </div>
+    <div class="fg"><label>Votre avis *</label><textarea id="rvm" placeholder="Partagez votre expérience au cabinet…" maxlength="500"></textarea></div>
+    <button class="fs" onclick="sendReview()">⭐ Publier mon avis</button>
+  </div>
+</div>
 <div class="mo" id="mo" onclick="closeOut(event)">
   <div class="md">
     <div class="mh"><div class="mt">📅 Prendre rendez-vous</div>
@@ -538,6 +567,106 @@ function sendRDV(pfx){
 const today=new Date().toISOString().split('T')[0];
 document.querySelectorAll('input[type=date]').forEach(i=>i.min=today);
 function closeMM(){ document.getElementById('mm').classList.remove('open'); }
+
+// --- Reviews (avis) ---
+function openReviewModal(){ const m=document.getElementById('rvmo'); if(m){m.classList.add('open');document.body.style.overflow='hidden';} }
+function closeReviewModal(){ const m=document.getElementById('rvmo'); if(m){m.classList.remove('open');document.body.style.overflow='';} }
+function closeReviewOut(e){ if(e.target===document.getElementById('rvmo')) closeReviewModal(); }
+
+(function(){
+  const stars = document.querySelectorAll('#rvStars span');
+  const input = document.getElementById('rvRate');
+  if(!stars.length || !input) return;
+  function paint(v){ stars.forEach(s => s.style.color = (Number(s.dataset.v) <= v) ? '#f59e0b' : '#e5e7eb'); }
+  stars.forEach(s => {
+    s.addEventListener('click', () => { input.value = s.dataset.v; paint(Number(s.dataset.v)); });
+    s.addEventListener('mouseover', () => paint(Number(s.dataset.v)));
+    s.addEventListener('mouseout', () => paint(Number(input.value)));
+  });
+  paint(Number(input.value || 5));
+})();
+
+const RV_COLORS = ['#5bbf4e','#1a6fb5','#e63946','#7c3aed','#0891b2','#d97706','#059669','#dc2626','#be185d','#2563eb'];
+function rvColor(name){ let h=0; const s=String(name||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return RV_COLORS[h % RV_COLORS.length]; }
+function rvInitial(name){ const t=String(name||'?').trim(); return (t[0]||'?').toUpperCase(); }
+function rvTimeAgo(iso){
+  const d = new Date(iso); if(isNaN(d)) return '';
+  const s = Math.max(0, (Date.now() - d.getTime())/1000);
+  if(s < 60) return "À l'instant";
+  const m = s/60; if(m < 60) return 'Il y a '+Math.floor(m)+' min';
+  const h = m/60; if(h < 24) return 'Il y a '+Math.floor(h)+' h';
+  const dd = h/24; if(dd < 7) return 'Il y a '+Math.floor(dd)+' j';
+  const w = dd/7; if(w < 5) return 'Il y a '+Math.floor(w)+' sem.';
+  const mo = dd/30; if(mo < 12) return 'Il y a '+Math.floor(mo)+' mois';
+  return 'Il y a '+Math.floor(dd/365)+' an(s)';
+}
+function rvEscape(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function rvCardHTML(r){
+  const rating = Math.max(1, Math.min(5, Number(r.rating)||5));
+  const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  const color = rvColor(r.name);
+  const initial = rvInitial(r.name);
+  return '<div class="card" style="padding:24px">'
+    + '<div style="color:#f59e0b;font-size:.95rem;margin-bottom:11px">'+stars+'</div>'
+    + '<div style="font-size:.88rem;color:var(--dark);line-height:1.65;font-style:italic">"'+rvEscape(r.comment)+'"</div>'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-top:15px">'
+    +   '<div style="width:40px;height:40px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0">'+rvEscape(initial)+'</div>'
+    +   '<div><div style="font-weight:800;font-size:.87rem;color:var(--dark)">'+rvEscape(r.name)+'</div>'
+    +   '<div style="font-size:.72rem;color:var(--gray)">'+rvEscape(rvTimeAgo(r.createdAt))+'</div>'
+    +   '<div style="display:inline-block;background:var(--green-light);color:var(--green-dark);border-radius:50px;padding:2px 9px;font-size:.71rem;font-weight:700;margin-top:4px">'+rvEscape(r.service)+'</div></div>'
+    + '</div>'
+    + '</div>';
+}
+
+async function loadReviews(){
+  const grid = document.getElementById('reviewsGrid');
+  if(!grid) return;
+  try {
+    const res = await fetch('/api/reviews', { cache: 'no-store' });
+    if(!res.ok) return;
+    const data = await res.json();
+    if(!Array.isArray(data.reviews)) return;
+    data.reviews.slice().reverse().forEach(r => {
+      grid.insertAdjacentHTML('afterbegin', rvCardHTML(r));
+    });
+  } catch(e){}
+}
+
+async function sendReview(){
+  const n = document.getElementById('rvn').value.trim();
+  const s = document.getElementById('rvs').value;
+  const r = Number(document.getElementById('rvRate').value) || 0;
+  const m = document.getElementById('rvm').value.trim();
+  if(!n || !s || !m){ alert('Veuillez remplir tous les champs obligatoires (*)'); return; }
+  if(r < 1 || r > 5){ alert('Veuillez choisir une note entre 1 et 5 étoiles.'); return; }
+  try {
+    const res = await fetch('/api/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: n, service: s, rating: r, comment: m })
+    });
+    if(!res.ok){
+      const msg = await res.text();
+      alert(msg || "Impossible d'envoyer votre avis. Veuillez réessayer.");
+      return;
+    }
+    const data = await res.json();
+    const grid = document.getElementById('reviewsGrid');
+    if(grid && data.review) grid.insertAdjacentHTML('afterbegin', rvCardHTML(data.review));
+    document.getElementById('rvn').value='';
+    document.getElementById('rvs').value='';
+    document.getElementById('rvm').value='';
+    document.getElementById('rvRate').value='5';
+    document.querySelectorAll('#rvStars span').forEach(sp => sp.style.color = '#f59e0b');
+    closeReviewModal();
+    toast('✅ Merci ! Votre avis a été publié.');
+  } catch(e){
+    alert("Une erreur est survenue. Veuillez réessayer.");
+  }
+}
+
+loadReviews();
 </script>
 </body>
 </html>
